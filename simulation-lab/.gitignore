@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.spec
+build/
+dist/
+*smoke-settings/
+*smoke.json
+local-test-settings/
