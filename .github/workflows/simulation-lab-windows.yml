@@ -1,0 +1,68 @@
+name: Simulation Lab Windows x64
+on:
+  workflow_dispatch:
+  push:
+    paths: ['simulation-lab/**', '.github/workflows/simulation-lab-windows.yml']
+  pull_request:
+    paths: ['simulation-lab/**', '.github/workflows/simulation-lab-windows.yml']
+permissions:
+  contents: read
+jobs:
+  build-test:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: simulation-lab
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - name: Install pinned build dependency
+        run: |
+          python -m pip install -r requirements-build.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency install failed' }
+      - name: Automated mathematical and persistence tests
+        run: |
+          python -m unittest discover -s tests -v
+          if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
+      - name: Source GUI smoke test
+        run: |
+          python app.py --settings-dir source-smoke-settings --smoke-test source-smoke.json
+          if ($LASTEXITCODE -ne 0) { throw 'Source GUI failed' }
+          if ((Get-Content source-smoke.json | ConvertFrom-Json).status -ne 'passed') { throw 'Missing source success' }
+      - name: Build executable
+        run: |
+          python -m PyInstaller --noconfirm --clean --onefile --windowed --name SimulationLab --add-data "profiles;profiles" app.py
+          if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
+          python verify_pe.py dist/SimulationLab.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Not Windows x64' }
+      - name: Packaged executable smoke test
+        run: |
+          $app = Start-Process -FilePath dist/SimulationLab.exe -ArgumentList '--settings-dir exe-smoke-settings --smoke-test exe-smoke.json' -PassThru
+          if (-not $app.WaitForExit(60000)) { $app.Kill(); throw 'GUI timed out' }
+          if ($app.ExitCode -ne 0) { throw 'Packaged GUI failed' }
+          if ((Get-Content exe-smoke.json | ConvertFrom-Json).status -ne 'passed') { throw 'Missing packaged success' }
+          Copy-Item README.md dist/README.md
+          Copy-Item profiles/fortnite-14.60.json dist/fortnite-14.60.json
+          Copy-Item source-smoke.json,exe-smoke.json dist/
+          (Get-FileHash dist/SimulationLab.exe -Algorithm SHA256).Hash + '  SimulationLab.exe' | Set-Content dist/SHA256.txt
+      - name: Upload tested Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimulationLab-Windows-x64
+          path: simulation-lab/dist/
+          if-no-files-found: error
+      - name: Upload diagnostic logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimulationLab-failure-logs
+          path: |
+            simulation-lab/*smoke-settings/
+            simulation-lab/*smoke.json
+            simulation-lab/build/SimulationLab/warn-SimulationLab.txt
+          if-no-files-found: ignore
