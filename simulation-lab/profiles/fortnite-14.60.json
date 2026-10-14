@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "intended_environment": "Project Reboot / Fortnite 14.60",
+  "integration_status": "unavailable",
+  "provider": "standalone-simulation",
+  "verified_offsets": {},
+  "verified_sources": [],
+  "live_integration_tested": false,
+  "missing_requirements": [
+    "Authorized, version-matched game-state interface or instrumented source build",
+    "Verified 14.60 structure definitions and coordinate/camera conventions",
+    "Windows integration fixture and successful live integration test evidence"
+  ],
+  "simulation_coordinates": "meters; +X forward, +Y right, +Z up; horizontal camera FOV; yaw and pitch in degrees",
+  "notes": "Simulation values are synthetic and are not Fortnite offsets or SDK definitions. This profile records intended environment only."
+}
