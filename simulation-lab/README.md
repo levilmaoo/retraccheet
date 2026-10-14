@@ -15,9 +15,12 @@ The intended future local test environment is **Project Reboot / Fortnite 14.60*
 - Windows workflow: prepared at `../.github/workflows/simulation-lab-windows.yml`.
   It tests the source GUI, builds a single-file executable, checks its AMD64 PE
   header, launches the executable, tests settings persistence, and uploads artifacts.
-- Windows CI has **not been run** from this workspace. No Windows executable is
-  supplied yet. The application is **not release-validated** until that workflow
-  passes and the tester completes the manual checks below.
+- Windows CI run [#1](https://github.com/levilmaoo/retraccheet/actions/runs/38496865969)
+  **passed** on Windows Server 2022 x64: all 20 logic tests, source GUI startup,
+  executable packaging, AMD64 PE verification, and packaged GUI smoke testing.
+  A [Windows executable package](https://github.com/levilmaoo/retraccheet/actions/runs/38496865969/artifacts/11863896340)
+  was produced. Use the latest successful run's artifact for updated documentation.
+  Windows 10/11 visual acceptance and the manual checks below remain pending.
 - Workspace inspection found no authorized Unreal SDK, debug symbols, source
   integration, offsets, or game-state interface. The existing root project is an
   unrelated Twilio utility; it was left unchanged.
@@ -28,12 +31,12 @@ anti-cheat. Anti-cheat bypass and stealth injection are not implemented.
 
 ## Windows tester: get and launch the build
 
-1. Place this directory and the root `.github/workflows` workflow in a GitHub
-   repository. If publishing this app separately, keep the `simulation-lab/`
-   directory layout; the workflow uses that path. Do not upload the unrelated
-   root `.env`, phone-number CSV files, or other private files.
-2. In GitHub Actions, select **Simulation Lab Windows x64** and choose **Run
-   workflow**. A push or pull request changing these files also triggers it.
+1. Open [the repository's Windows build workflow](https://github.com/levilmaoo/retraccheet/actions/workflows/simulation-lab-windows.yml).
+   The app and workflow are already published. If using your own repository,
+   retain the `simulation-lab/` layout and the root `.github/workflows` workflow.
+   Do not upload unrelated private workspace files.
+2. Select the latest successful run. To build a fresh copy, select **Run workflow**.
+   A push or pull request changing these files also triggers it.
 3. Only accept a successful run. Download **SimulationLab-Windows-x64** from that
    run's Artifacts section and extract the ZIP to a normal user-writable folder.
 4. In PowerShell, run `Get-FileHash .\SimulationLab.exe -Algorithm SHA256` and
